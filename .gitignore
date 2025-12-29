@@ -1,0 +1,13 @@
+# Ignore commiting venv
+venv/
+__pycache__/
+*.pyc
+
+# Environment variables
+.env
+
+# sample test
+sample-test.py
+
+# ignnore commiting pytest cache
+.pytest_cache/
