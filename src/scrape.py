@@ -1,12 +1,14 @@
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 import time
+import random
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from tqdm import tqdm
+import pandas as pd
 
 def web_driver(user_agent_string=None):
     options = Options()
@@ -223,3 +225,29 @@ def get_job_data(driver, url):
         'keywords': job_keywords
     }
     return job_data
+
+def get_data(
+        user_agent,
+        countries,
+        tags,
+        posted_since,
+        full_load,
+        clicks_to_load,
+        sleep_time_load
+):
+    driver = web_driver(user_agent_string=user_agent)
+    url = make_url(countries, tags, posted_since)
+    initial_elements = load_elements(driver, url, full_load=full_load, clicks=clicks_to_load, sleep_time=sleep_time_load)
+    job_posts =  get_search_jobs(initial_elements)
+    job_urls = [item['url'] for item in job_posts]
+    job_descs = []
+    for url in tqdm(job_urls):
+        job_desc = get_job_data(driver, url)
+        job_descs.append(job_desc)
+        sleep_time = random.uniform(2.4, 3.6)
+        time.sleep(sleep_time)
+
+    df_job_posts = pd.DataFrame(job_posts)
+    df_job_descs = pd.DataFrame(job_descs)
+    df_jobs = pd.merge(df_job_posts, df_job_descs, on="url", how="inner")
+    return df_jobs
